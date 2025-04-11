@@ -1,5 +1,7 @@
 #include "test.h"
 
+#include <cstdio>
+
 Test* Test::firstTest;
 
 int Test::RunAll() {

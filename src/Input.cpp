@@ -328,11 +328,7 @@ void LoadFileList(const Configuration& config,
         std::string fileName = it->path().filename().generic_string();
         if ((fileName.size() >= 2 && fileName[0] == '.') ||
             IsItemBlacklisted(config, it->path())) {
-#ifdef WITH_BOOST
-            it.no_push();
-#else
             it.disable_recursion_pending();
-#endif
             continue;
         }       
 
