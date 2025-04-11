@@ -1,12 +1,13 @@
 #include "test.h"
 #include "Analysis.h"
 
+#include <cstdio>
 
 TEST(FindCircularDependenciesFindsNothingInADisconnectedGraph) {
   std::unordered_map<std::string, Component *> components;
   for (int n = 0; n < 10; n++) {
     char compName[12];
-    sprintf(compName, "%d", n);
+    snprintf(compName, 12, "%d", n);
     components[compName] = new Component(compName);
   }
 
@@ -21,7 +22,7 @@ TEST(FindCircularDependenciesFindsNothingInAHeavilyConnectedTree) {
   std::vector<Component*> allSoFar;
   for (int n = 0; n < 10; n++) {
     char compName[12];
-    sprintf(compName, "%d", n);
+    snprintf(compName, 12, "%d", n);
     Component* thisOne = components[compName] = new Component(compName);
     for (auto& c : allSoFar) {
       thisOne->pubDeps.insert(c);
