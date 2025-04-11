@@ -38,11 +38,18 @@ jobs:
           [
             ubuntu-22.04,
             ubuntu-24.04,
-            macos-14,
-            macos-15,
-            windows-2022,
-            windows-2025,
           ]
+        compiler:
+          [
+            g++,
+            clang++,
+          ]
+        include:
+          - os: macos-14
+          - os: macos-15
+          - os: windows-2022
+          - os: windows-2025
+
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # 4.2.2
@@ -56,18 +63,24 @@ jobs:
         shell: bash
         run: |
           # see https://stackoverflow.com/a/24470998/5843895 and https://cliutils.gitlab.io/modern-cmake/chapters/intro/running.html
-          cmake -S . -B build -DCMAKE_INSTALL_PREFIX=out -DCMAKE_BUILD_TYPE=Release
-          # TODO: Enable tests
-          # CTEST_OUTPUT_ON_FAILURE=1 cmake --build build --config Release --target test -j 4
-          CTEST_OUTPUT_ON_FAILURE=1 cmake --build build --config Release --target install -j 4
+          if [ -n "${{ matrix.compiler }}" ]; then
+            export CMAKE_CXX_COMPILER=-DCMAKE_CXX_COMPILER=${{ matrix.compiler }}
+          fi
+          cmake -S . -B build -DCMAKE_INSTALL_PREFIX=out ${CMAKE_CXX_COMPILER} -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --config Release --target install -j 4
+
+      - if: ${{ !contains(matrix.os, 'windows') }}
+        name: Run tests
+        run: |
+          CTEST_OUTPUT_ON_FAILURE=1 cmake --build build --config Release --target test -j 4
 
       - name: Tar files
         shell: bash
-        run: tar --strip-components 1 -cvf build-${{ matrix.os }}.tar out/
+        run: tar --strip-components 1 -cvf build-${{ matrix.os }}-${{ matrix.compiler }}.tar out/
 
       - name: Upload build
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # 4.6.2
         with:
-          name: build-${{ matrix.os }}
-          path: build-${{ matrix.os }}.tar
+          name: build-${{ matrix.os }}-${{ matrix.compiler }}
+          path: build-${{ matrix.os }}-${{ matrix.compiler }}.tar
 
